@@ -25,4 +25,5 @@ endif()
 
 add_subdirectory(lib/arguments)
 add_subdirectory(lib/polyline)
+add_subdirectory(lib/optimization)
 add_subdirectory(main)
