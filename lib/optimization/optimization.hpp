@@ -24,17 +24,11 @@ class optimization {
         std::string area;
         double threshold;
         std::string annealing;
+        void local_search(void);
+        void simulated_annealing(void);
     public:
         optimization(std::vector<Point>, std::vector<Segment>, std::string, std::string, std::string, std::string, std::string);
 
-}
-
-
-
-
-
-
-
-
+};
 
 #endif
