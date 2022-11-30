@@ -29,20 +29,23 @@ void arguments::make_vector(void) {
 }
 
 arguments::arguments(int argc, char *argv[]) {
-    if (argc < 9) throw std::invalid_argument("Too few arguments");
-    if (strcmp(argv[1], "-i") || strcmp(argv[3], "-o") || strcmp(argv[5], "-algorithm") || strcmp(argv[7], "-edge_selection")) throw std::invalid_argument("Wrong arguments");
-    if (strcmp(argv[6], "incremental") && strcmp(argv[6], "convex_hull")) throw std::invalid_argument("\'Algorithm\' must be \'incremental\' or \'convex_hull\'");
-    if (strcmp(argv[8], "1") && strcmp(argv[8], "2") && strcmp(argv[8], "3")) throw std::invalid_argument("\'Edge selection\' must be \'1\', \'2\' or \'3\'");
-    if (!strcmp(argv[6], "incremental")) {
-        if (argc != 11) throw std::invalid_argument("\'Incremental algorithm\' also needs \'initialization\' argument");
-        if (strcmp(argv[9], "-initialization")) throw std::invalid_argument("Wrong arguments");
-        if (strcmp(argv[10], "1a") && strcmp(argv[10], "1b") && strcmp(argv[10], "2a") && strcmp(argv[10], "2b")) throw std::invalid_argument("\'Initialization\' must be \'1a\', \'1b\', \'2a\' or \'2b\'");
-        this->init = std::string(argv[10]);
-    } else if (argc != 9) throw std::invalid_argument("Too many arguments");
+    if (argc != 12) throw std::invalid_argument("Wrong arguments");
+    if (strcmp(argv[1], "-i") || strcmp(argv[3], "-o") || strcmp(argv[5], "-algorithm") || strcmp(argv[7], "-L") || ( strcmp(argv[9], "-max") && strcmp(argv[9], "-min")) || (strcmp(argv[10], "-threshold") && strcmp(argv[10], "-annealing")) ) throw std::invalid_argument("Wrong arguments");
+    if (strcmp(argv[6], "local_search") && strcmp(argv[6], "simulated_annealing")) throw std::invalid_argument("\'Algorithm\' must be \'local_search\' or \'simulated_annealing\'");
+    if (!strcmp(argv[6], "local_search")) {
+        if (strcmp(argv[10], "-threshold")) throw std::invalid_argument("Wrong arguments");
+        this->threshold = std::string(argv[11]);
+    } else if (!strcmp(argv[6], "simulated_annealing")) {
+        if (strcmp(argv[10], "-annealing")) throw std::invalid_argument("Wrong arguments");
+        if (strcmp(argv[11], "local") && strcmp(argv[11], "global") && strcmp(argv[11], "subdivision")) throw std::invalid_argument("\'Annealing\' must be \'local\', \'global\'or \'subdivision\'");
+        this->annealing = std::string(argv[11]);    
+    }
+    
     this->in_file = std::string(argv[2]);
     this->out_file = std::string(argv[4]);
     this->alg = std::string(argv[6]);
-    this->edge_sel = std::string(argv[8]);
+    this->L = std::string(argv[8]);
+    this->area = std::string(argv[9]);
     try {
         make_vector();
     } catch (...) {
@@ -63,13 +66,18 @@ std::string arguments::get_alg(void) const {
     return this->alg;
 }
 
-std::string arguments::get_edge_sel(void) const {
-    return this->edge_sel;
+std::string arguments::get_L(void) const {
+    return this->L;
 }
 
-std::string arguments::get_init(void) const {
-    return this->init;
+std::string arguments::get_threshold(void) const {
+    return this->threshold;
 }
+
+std::string arguments::get_annealing(void) const {
+    return this->annealing;
+}
+
 
 std::vector<std::pair<float, float>> arguments::get_points(void) const {
     return this->points;
