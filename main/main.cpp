@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     const std::string POLY_ALGO = "incremental";
     const std::string EDDGE_SEL = "1";
     const std::string INIT = "1a";
-    
+
     try {
         // get arguments from command line
         arguments arg(argc, argv);
@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 
     } catch (std::invalid_argument const &ex) {
         std::cerr << ex.what() << std::endl;
-        std::cerr << "Usage: ./to_polygon -i <input_file> -o <output_file> -algorithm <\'incremental\' OR \'convex_hull\'> -edge_selection <\'1\' OR \'2\' OR \'3\'> -initialization <\'1a\' OR \'1b\' OR \'2a\' OR \'2b\' | with \'incremental\' algorithm only>" << std::endl;
+        std::cerr << "Usage: ./optimal_polygon -i <input_file> -o <output_file> -algorithm <\'local_search\' OR \'simulated_annealing\'> -L  < L parameter >  -max [maximal area polygonization]  -min [minimal area polygonization]  -threshold < double > | with \'local_search\' algorithm only> -annealing < \'local\' OR \'global\' OR \'subdivision\' > | with \'simulated_annealing\' algorithm only" << std::endl;
         return -1;
     } catch (std::exception const &ex) {
         std::cerr << ex.what() << std::endl;
