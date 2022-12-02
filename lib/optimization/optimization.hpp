@@ -17,8 +17,6 @@ class optimization {
     private:
         std::vector<Point> pl_points;
         std::vector<Segment> poly_line;
-        std::vector<Point> optimized_pl_points;
-        std::vector<Segment> optimized_poly_line;
         int L;
         std::string out_file;
         std::string area;
@@ -26,9 +24,15 @@ class optimization {
         std::string annealing;
         void local_search(void);
         void simulated_annealing(void);
+        std::vector<Point> replace_edges(Segment, std::vector<Segment>);
     public:
         optimization(std::vector<Point>, std::vector<Segment>, std::string, std::string, std::string, std::string, std::string);
 
 };
 
+typedef struct update_node{
+    Segment e;
+    std::vector<Segment> V;
+    double area_change;
+} update_node;
 #endif
