@@ -568,3 +568,8 @@ polyline::polyline(std::vector<std::pair<float, float>> vec, std::string alg, st
     }
     return;
 }
+
+
+std::vector<Point> polyline::get_pl_points() const {
+    return this->pl_points;
+}

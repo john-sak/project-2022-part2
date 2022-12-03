@@ -4,4 +4,4 @@ add_library(
     ../../src/optimization.cpp
 )
 
-target_include_directories(arguments PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(optimization PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

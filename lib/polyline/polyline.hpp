@@ -37,6 +37,7 @@ class polyline {
         void write_to_file(std::string, int) const;
     public:
         polyline(std::vector<std::pair<float, float>>, std::string, std::string, std::string, std::string);
+        std::vector<Point> get_pl_points(void) const;
 };
 
 #endif

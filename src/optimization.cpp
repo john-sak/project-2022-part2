@@ -1,14 +1,28 @@
+#include <string>
+#include <algorithm>
+
 #include <optimization.hpp>
 
-#include <string>
+bool compareAreaChange(const update_node& a, const update_node& b)
+{
+    return a.area_change > b.area_change;
+}
+
+
 
 void optimization::local_search(void) {
 
+    double area_diff;
     do {
+        Polygon curr_poly;
+        for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) curr_poly.push_back(*it);
+        double curr_area = std::abs(curr_poly.area());
+
+        //vector of all possible updates
+        std::vector<update_node> updates;
+
         for (auto it = this->poly_line.begin(); it != this->poly_line.end(); ++it) {
             for (int i = 1; i <= this->L; i++) {
-                //vector of all possible updates
-                std::vector<update_node> updates;
                 //loop through all i-legth vertices
                 for (size_t j = 0; j < this->poly_line.size(); j += i) {
                     // check if switching it and poly_line[j] gives optimized and simple polygon
@@ -22,16 +36,14 @@ void optimization::local_search(void) {
 
                     Polygon temp_poly;
                     for (auto it = temp_points.begin(); it != temp_points.end(); ++it) temp_poly.push_back(*it);
-                    Polygon curr_poly;
-                    for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) temp_poly.push_back(*it);
 
                     if (!temp_poly.is_simple()) continue;
 
-                    if (!area.compare("-max")) {
-                        int temp_area= std::abs(temp_poly.area());
-                        int curr_area = std::abs(curr_poly.area());
+                    if (!this->opt.compare("-max")) {
+                        double temp_area= std::abs(temp_poly.area());
+                        
 
-                        int diff = temp_area - curr_area;
+                        double diff = temp_area - curr_area;
                         
                         if (diff <= 0) continue;
 
@@ -44,11 +56,10 @@ void optimization::local_search(void) {
                         }
                     }
 
-                    else if (!area.compare("-min")) {
-                        int temp_area= std::abs(temp_poly.area());
-                        int curr_area = std::abs(curr_poly.area());
+                    else if (!this->opt.compare("-min")) {
+                        double temp_area= std::abs(temp_poly.area());
 
-                        int diff = curr_area - temp_area;
+                        double diff = curr_area - temp_area;
                         
                         if (diff <= 0) continue;
 
@@ -63,16 +74,53 @@ void optimization::local_search(void) {
                 }
 
             }
-        }
-        // get curr area
+        }        
         // sort update list based on area difference
+        std::sort(updates.begin(),updates.end(),compareAreaChange);
         // loop on update list
-        // check if updating poly line satisfies the conditions as before
-        // if yes update poly line
+        for (auto it = updates.begin(); it != updates.end(); ++it) {
+            std::vector<Point> temp_points = this->replace_edges(it->e, it->V);
 
-        // calculate area diff between the two polygon
-        int area_diff;
-    } while (area_diff <= this->threshold);
+            Polygon temp_poly;
+            for (auto it = temp_points.begin(); it != temp_points.end(); ++it) temp_poly.push_back(*it);
+
+            if (!temp_poly.is_simple()) continue;
+
+            if (!this->opt.compare("-max")) {
+                double temp_area= std::abs(temp_poly.area());
+                double diff = temp_area - curr_area;
+
+                if (diff <= 0) continue;
+                else this->pl_points = temp_points;
+            }
+
+            if (!this->opt.compare("-min")) {
+                double temp_area= std::abs(temp_poly.area());
+                double diff = curr_area - temp_area;
+
+                if (diff <= 0) continue;
+                else this->pl_points = temp_points;
+            }
+        }
+
+        Polygon updated_poly;
+        for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) updated_poly.push_back(*it);
+        double updated_area = std::abs(updated_poly.area());
+
+        if (!this->opt.compare("-max")) area_diff = updated_area - curr_area;
+        else if (!this->opt.compare("-max")) area_diff = curr_area - updated_area;
+
+        std::cout << "CURR AREA " << curr_area << std::endl;
+        std::cout << "UPDATED AREA " << updated_area << std::endl;
+        std::cout << "AREA DIFF " << area_diff << std::endl;
+
+    } while (area_diff >= this->threshold);
+
+    this->poly_line = this->get_segment(this->pl_points);
+}
+
+void optimization::simulated_annealing(void) {
+
 }
 
 std::vector<Point> optimization::replace_edges(Segment e, std::vector<Segment> V) {
@@ -99,8 +147,26 @@ std::vector<Point> optimization::replace_edges(Segment e, std::vector<Segment> V
     return temp_points;
 }
 
-optimization::optimization(std::vector<Point> pl_points, std::vector<Segment>poly_line, std::string alg, std::string L, std::string area, std::string alg_param, std::string out_file)
-    :out_file(out_file), pl_points(pl_points), poly_line(poly_line), area(area) {
+std::vector<Segment> optimization::get_segment(std::vector<Point> points) {
+    try {
+        std::vector<Segment> seg;
+
+        int i = 0;
+        while(i != (points.size() - 1)) {
+            seg.push_back(Segment(points[i], points[i+1]));
+            i++;
+        }
+
+        seg.push_back(Segment(points[points.size() - 1], points[0]));
+
+        return seg;
+    } catch (...) {
+        throw;
+    }
+}
+
+optimization::optimization(std::vector<Point> pl_points, std::string alg, std::string L, std::string opt, std::string alg_param, std::string out_file)
+    :out_file(out_file), pl_points(pl_points), opt(opt) {
         try {
             this->L = std::stoi(L);
             if (!alg.compare("local_search")) {

@@ -10,9 +10,10 @@ class arguments {
         std::string out_file;
         std::string alg;
         std::string L;
-        std::string area;
-        std::string threshold;
-        std::string annealing;
+        std::string opt;
+        // std::string threshold;
+        // std::string annealing;
+        std::string alg_param;
         std::vector<std::pair<float, float>> points;
         void make_vector(void);
     public:
@@ -21,9 +22,11 @@ class arguments {
         std::string get_out_file(void) const;
         std::string get_alg(void) const;
         std::string get_L(void) const;
-        std::string get_threshold(void) const;
-        std::string get_annealing(void) const;
+        // std::string get_threshold(void) const;
+        // std::string get_annealing(void) const;
         std::vector<std::pair<float, float>> get_points(void) const;
+        std::string get_opt(void) const;
+        std::string get_alg_param(void) const;
 };
 
 #endif
