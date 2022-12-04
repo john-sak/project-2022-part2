@@ -122,6 +122,26 @@ void optimization::local_search(void) {
 }
 
 void optimization::simulated_annealing(void) {
+    double T = 1.0;
+
+    while(T >= 0) {
+        // when n > 1000 and we get subdivision from cmd we use subdivision on a new function 
+        // for the division and the global steps and we continue here with the local steps
+
+        // transition step global or local (we transition  all points in a loop?)
+        // global is the same step as in local search
+
+        // check if is simple
+
+        // check if optimizes poly 
+
+        // if not check for metropolis criterion
+
+        // update poly_line and pl_points
+
+        // update T: T = T - 1/L
+
+    }
 
 }
 

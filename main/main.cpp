@@ -1,4 +1,3 @@
-// to_polygon.cpp
 #include <iostream>
 #include <string>
 
