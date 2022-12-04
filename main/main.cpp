@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
         // run the given algorithm, write results in given out_file
         polyline S(arg.get_points(), POLY_ALGO, EDDGE_SEL, INIT, arg.get_out_file());
 
-        optimization O(S.get_pl_points(), arg.get_alg(), arg.get_L(), arg.get_opt(), arg.get_alg_param(), arg.get_out_file());
+        optimization O(S.get_pl_points(),S.get_poly_line(), arg.get_alg(), arg.get_L(), arg.get_opt(), arg.get_alg_param(), arg.get_out_file());
 
     } catch (std::invalid_argument const &ex) {
         std::cerr << ex.what() << std::endl;

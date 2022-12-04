@@ -28,7 +28,7 @@ class optimization {
         // bool compareAreaChange(const update_node, const update_node);
         std::vector<Segment> get_segment(std::vector<Point>);
     public:
-        optimization(std::vector<Point>, std::string, std::string, std::string, std::string, std::string);
+        optimization(std::vector<Point>, std::vector<Segment>, std::string, std::string, std::string, std::string, std::string);
 
 };
 

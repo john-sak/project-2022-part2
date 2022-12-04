@@ -35,9 +35,10 @@ void optimization::local_search(void) {
                     std::vector<Point> temp_points = this->replace_edges( *it, V);
 
                     Polygon temp_poly;
-                    for (auto it = temp_points.begin(); it != temp_points.end(); ++it) temp_poly.push_back(*it);
+                    for (auto it3 = temp_points.begin(); it3 != temp_points.end(); ++it3) temp_poly.push_back(*it3);
 
                     if (!temp_poly.is_simple()) continue;
+
 
                     if (!this->opt.compare("-max")) {
                         double temp_area= std::abs(temp_poly.area());
@@ -82,7 +83,7 @@ void optimization::local_search(void) {
             std::vector<Point> temp_points = this->replace_edges(it->e, it->V);
 
             Polygon temp_poly;
-            for (auto it = temp_points.begin(); it != temp_points.end(); ++it) temp_poly.push_back(*it);
+            for (auto it2 = temp_points.begin(); it2 != temp_points.end(); ++it2) temp_poly.push_back(*it2);
 
             if (!temp_poly.is_simple()) continue;
 
@@ -113,10 +114,11 @@ void optimization::local_search(void) {
         std::cout << "CURR AREA " << curr_area << std::endl;
         std::cout << "UPDATED AREA " << updated_area << std::endl;
         std::cout << "AREA DIFF " << area_diff << std::endl;
+        this->poly_line = this->get_segment(this->pl_points);
 
     } while (area_diff >= this->threshold);
 
-    this->poly_line = this->get_segment(this->pl_points);
+    
 }
 
 void optimization::simulated_annealing(void) {
@@ -165,8 +167,8 @@ std::vector<Segment> optimization::get_segment(std::vector<Point> points) {
     }
 }
 
-optimization::optimization(std::vector<Point> pl_points, std::string alg, std::string L, std::string opt, std::string alg_param, std::string out_file)
-    :out_file(out_file), pl_points(pl_points), opt(opt) {
+optimization::optimization(std::vector<Point> pl_points,std::vector<Segment> poly_line, std::string alg, std::string L, std::string opt, std::string alg_param, std::string out_file)
+    :out_file(out_file), pl_points(pl_points),poly_line(poly_line), opt(opt) {
         try {
             this->L = std::stoi(L);
             if (!alg.compare("local_search")) {
