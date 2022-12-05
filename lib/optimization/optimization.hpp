@@ -23,7 +23,9 @@ class optimization {
         double threshold;
         std::string annealing;
         void local_search(void);
-        void simulated_annealing(void);
+        void simulated_annealing_local(void);
+        void simulated_annealing_global(void);
+        void simulated_annealing_subdivision(void);
         std::vector<Point> replace_edges(Segment, std::vector<Segment>);
         // bool compareAreaChange(const update_node, const update_node);
         std::vector<Segment> get_segment(std::vector<Point>);

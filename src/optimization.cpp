@@ -121,7 +121,55 @@ void optimization::local_search(void) {
     
 }
 
-void optimization::simulated_annealing(void) {
+void optimization::simulated_annealing_local(void) {
+    double T = 1.0;
+
+    while(T >= 0) {
+        // when n > 1000 and we get subdivision from cmd we use subdivision on a new function 
+        // for the division and the global steps and we continue here with the local steps
+
+        // transition step global or local (we transition  all points in a loop?)
+        // global is the same step as in local search
+
+        // check if is simple
+
+        // check if optimizes poly 
+
+        // if not check for metropolis criterion
+
+        // update poly_line and pl_points
+
+        // update T: T = T - 1/L
+
+    }
+
+}
+
+void optimization::simulated_annealing_global(void) {
+    double T = 1.0;
+
+    while(T >= 0) {
+        // when n > 1000 and we get subdivision from cmd we use subdivision on a new function 
+        // for the division and the global steps and we continue here with the local steps
+
+        // transition step global or local (we transition  all points in a loop?)
+        // global is the same step as in local search
+
+        // check if is simple
+
+        // check if optimizes poly 
+
+        // if not check for metropolis criterion
+
+        // update poly_line and pl_points
+
+        // update T: T = T - 1/L
+
+    }
+
+}
+
+void optimization::simulated_annealing_subdivisions(void) {
     double T = 1.0;
 
     while(T >= 0) {
@@ -197,7 +245,10 @@ optimization::optimization(std::vector<Point> pl_points,std::vector<Segment> pol
             }
             else if (!alg.compare("simulated_annealing")) {
                 this->annealing = alg_param;
-                this->simulated_annealing();
+                if (!alg_param.compare("local")) this->simulated_annealing_local();
+                else if (!alg_param.compare("global")) this->simulated_annealing_global();
+                else if (!alg_param.compare("subdivision")) this->simulated_annealing_subdivision();
+                else throw std::invalid_argument("\'Annealing\' must be \'local\', \'global\' or \'subdivision\'");
             }
             else throw std::invalid_argument("\'Algorithm\' must be \'local_search\' or \'simulated_annealing\'");
         } catch (...) {
