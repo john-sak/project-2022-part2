@@ -152,6 +152,8 @@ void optimization::simulated_annealing_local(void) {
     
     srand((unsigned) time(NULL));
 
+    // kd-tree initialization here?
+
     while (T >= 0) {
         Polygon curr_poly;
         for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) curr_poly.push_back(*it);
@@ -174,9 +176,9 @@ void optimization::simulated_annealing_local(void) {
         Polygon temp_poly;
         for (auto it = temp_points.begin(); it != temp_points.end(); ++it) temp_poly.push_back(*it);
 
-        if (!temp_poly.is_simple()) continue;
+        // if (!temp_poly.is_simple()) continue;
         
-
+        // kd-tree validity check
         
         if (!this->opt.compare("-max")) {
                 double temp_area= std::abs(temp_poly.area());
