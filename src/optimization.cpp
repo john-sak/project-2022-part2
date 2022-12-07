@@ -219,8 +219,7 @@ void optimization::simulated_annealing_local(void) {
 
 void optimization::simulated_annealing_global(void) {
     double T = 1.0;
-    // R to be change
-    double R = 0.5;
+    double R;
     std::vector<Point> ch_points = this->get_ch(this->pl_points);
     Polygon ch;
     for (auto it = ch_points.begin(); it != ch_points.end(); ++it) ch.push_back(*it);
@@ -242,6 +241,7 @@ void optimization::simulated_annealing_global(void) {
     srand((unsigned) time(NULL));
 
     while (T >= 0) {
+        R = (double) rand() / RAND_MAX;
         Polygon curr_poly;
         for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) curr_poly.push_back(*it);
         double curr_area = std::abs(curr_poly.area());
@@ -307,26 +307,40 @@ void optimization::simulated_annealing_global(void) {
 }
 
 void optimization::simulated_annealing_subdivision(void) {
-    double T = 1.0;
+    // m to be change
+    int m = 10;
 
-    while(T >= 0) {
-        // when n > 1000 and we get subdivision from cmd we use subdivision on a new function 
-        // for the division and the global steps and we continue here with the local steps
+    int k = std::ceil( (float) (this->pl_points.size() - 1 )/ (m - 1));
 
-        // transition step global or local (we transition  all points in a loop?)
-        // global is the same step as in local search
+    std::cout << k << std::endl;
 
-        // check if is simple
+    std::vector<Point> sub_points[k];
 
-        // check if optimizes poly 
+    for (int i = 0; i < k; i++) {
 
-        // if not check for metropolis criterion
+        auto start_it = std::next(this->pl_points.cbegin(), i*(m - 1));
 
-        // update poly_line and pl_points
+        auto end_it = std::next(this->pl_points.cbegin(), i*(m - 1) + m);
 
-        // update T: T = T - 1/L
+        sub_points[i].resize(m);
+
+        if (i*(m - 1) + m > this->pl_points.size())
+        {
+            end_it = this->pl_points.cend();
+
+            sub_points[i].resize(this->pl_points.size() - i*(m - 1));
+        }   
+        std::cout << "HERE" << std::endl;
+        std::copy(start_it, end_it, sub_points[i].begin());         
 
     }
+   for (int i = 0; i < k; i++) {
+        for (auto it = sub_points[i].begin(); it < sub_points[i].end(); ++it)
+            std::cout << *it << " ";    
+
+            std::cout << std::endl;
+    }
+    
 
 }
 
