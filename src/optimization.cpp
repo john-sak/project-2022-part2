@@ -6,9 +6,17 @@
 #include <CGAL/Convex_hull_traits_adapter_2.h>
 #include <CGAL/property_map.h>
 
+#include <CGAL/Kd_tree.h>
+#include <CGAL/Fuzzy_iso_box.h>
+#include <CGAL/Search_traits_2.h>
+
 #include <optimization.hpp>
 
 typedef CGAL::Convex_hull_traits_adapter_2<K, CGAL::Pointer_property_map<Point>::type> Convex_hull_traits_2;
+
+typedef CGAL::Search_traits_2<K> Traits;
+typedef CGAL::Kd_tree<Traits> Tree;
+typedef CGAL:Fuzzy_iso_box<Traits> Fuzzy_iso_box;
 
 bool compareAreaChange(const update_node& a, const update_node& b)
 {
@@ -148,11 +156,12 @@ void optimization::simulated_annealing_local(void) {
     double E;
 
     if (!this->opt.compare("-max")) E = this->pl_points.size() * (1 - start_area / ch_area);
-    else if (!this->opt.compare("-min")) E = this->pl_points.size() * start_area / ch_area;
-    
+    else E = this->pl_points.size() * start_area / ch_area;
+
     srand((unsigned) time(NULL));
 
-    // kd-tree initialization here?
+    Tree tree;
+    for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) tree.insert(*it);
 
     while (T >= 0) {
         Polygon curr_poly;
@@ -164,47 +173,34 @@ void optimization::simulated_annealing_local(void) {
         Point q_point = this->pl_points[q];
 
         std::vector<Point> temp_points = this->pl_points;
-        
+
         auto qPos = temp_points.begin() + q;
         temp_points.erase(qPos);
 
-        auto tPos = temp_points.begin() + q + 2;
-        if(q == this->pl_points.size() - 2) tPos = temp_points.begin();
+        auto sPos = temp_points.begin() + q + 2;
+        if(q == this->pl_points.size() - 2) sPos = temp_points.begin();
 
-        temp_points.insert(tPos, q_point);
+        temp_points.insert(sPos, q_point);
 
         Polygon temp_poly;
         for (auto it = temp_points.begin(); it != temp_points.end(); ++it) temp_poly.push_back(*it);
 
-        // if (!temp_poly.is_simple()) continue;
-        
         // kd-tree validity check
-        
+
         if (!this->opt.compare("-max")) {
                 double temp_area= std::abs(temp_poly.area());
                 double diff = temp_area - curr_area;
                 updated_E = this->pl_points.size() * (1 - temp_area / ch_area);
 
-                if (diff <= 0) 
-                    if (exp( - ( updated_E - E) / T) < R) {
-                        // T = T - 1/L;
-                        continue;
-                    }
+                if (diff <= 0 && (exp( - ( updated_E - E) / T) < R)) continue;
                 this->pl_points = temp_points;
-
-        }
-        else if (!this->opt.compare("-min")) {
+        } else if (!this->opt.compare("-min")) {
                 double temp_area= std::abs(temp_poly.area());
                 double diff = curr_area - temp_area;
                 updated_E = this->pl_points.size() * start_area / ch_area;
 
-                if (diff <= 0) 
-                    if (exp( - ( updated_E - E) / T) < R) {
-                        // T = T - 1/L;
-                        continue;
-                    }
+                if (diff <= 0 && (exp( - ( updated_E - E) / T) < R)) continue;
                 this->pl_points = temp_points;
-
         }
         T = T - (double) 1 / this->L;
     }
@@ -213,7 +209,7 @@ void optimization::simulated_annealing_local(void) {
     for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) end_poly.push_back(*it);
 
     double end_area = std::abs(end_poly.area());
-    
+
     std::cout << end_area << std::endl;
 }
 
