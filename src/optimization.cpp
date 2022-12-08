@@ -198,7 +198,27 @@ void optimization::simulated_annealing_local(void) {
         Fuzzy_iso_box exact_range(lo_le_point, up_ri_point);
         tree.search(std::back_inserter(result), exact_range);
 
-        // for every point in result, check incident edges for intersection with pr and qs
+        std::vector<Segment> lines;
+        for (auto it = temp_points.begin(); it != temp_points.end(); it++) {
+            if (std::find(result.begin(), result.end(), *it) != result.end()) {
+                auto it_next = (it == temp_points.end() - 1 ? temp_points.begin() ? it + 1);
+                auto it_prev = (it == temp_points.begin() ? temp_points.end() - 1 ? it - 1);
+                lines.push_back(Segment(*it, *it_next));
+                lines.push_back(Segment(*it_prev, *it));
+            }
+        }
+
+        int flag = 0;
+        Segment pr(p_point, r_point), qs(q_point, s_point);
+        for (Segment line : lines) {
+            // if line intersects whether pr or qs, this solution is *not* valid
+            if (intersection(line, pr) || intersection(line, qs)) {
+                flag = 1;
+                break;
+            }
+        }
+
+        if (flag == 1) continue;
 
         if (!this->opt.compare("-max")) {
                 double temp_area= std::abs(temp_poly.area());
