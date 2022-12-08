@@ -178,14 +178,27 @@ void optimization::simulated_annealing_local(void) {
         temp_points.erase(qPos);
 
         auto sPos = temp_points.begin() + q + 2;
-        if(q == this->pl_points.size() - 2) sPos = temp_points.begin();
+        if (q == this->pl_points.size() - 2) sPos = temp_points.begin();
 
         temp_points.insert(sPos, q_point);
 
         Polygon temp_poly;
         for (auto it = temp_points.begin(); it != temp_points.end(); ++it) temp_poly.push_back(*it);
 
-        // kd-tree validity check
+        int p = (q > 0 ? q - 1 : this->pl_points.size() - 1);
+        int r = (q < this->pl_points.size() - 1 ? q + 1 : 0);
+        int s = (r < this->pl_points.size() - 1 ? r + 1 : 0);
+
+        Point p_point = this->pl_points[p], r_point = this->pl_points[r], s_point = this->pl_points[s];
+
+        Point up_ri_point(std::max({p_point.x(), q_point.x(), r_point.x(), s_point.x()}), std::max({p_point.y(), q_point.y(), r_point.y(), s_point.y()}));
+        Point lo_le_point(std::min({p_point.x(), q_point.x(), r_point.x(), s_point.x()}), std::min({p_point.y(), q_point.y(), r_point.y(), s_point.y()}));
+
+        std::list<Point> result;
+        Fuzzy_iso_box exact_range(lo_le_point, up_ri_point);
+        tree.search(std::back_inserter(result), exact_range);
+
+        // for every point in result, check incident edges for intersection with pr and qs
 
         if (!this->opt.compare("-max")) {
                 double temp_area= std::abs(temp_poly.area());
