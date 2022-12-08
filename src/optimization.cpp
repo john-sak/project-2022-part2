@@ -16,7 +16,7 @@ typedef CGAL::Convex_hull_traits_adapter_2<K, CGAL::Pointer_property_map<Point>:
 
 typedef CGAL::Search_traits_2<K> Traits;
 typedef CGAL::Kd_tree<Traits> Tree;
-typedef CGAL:Fuzzy_iso_box<Traits> Fuzzy_iso_box;
+typedef CGAL::Fuzzy_iso_box<Traits> Fuzzy_iso_box;
 
 bool compareAreaChange(const update_node& a, const update_node& b)
 {
