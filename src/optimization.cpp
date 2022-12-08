@@ -6,6 +6,8 @@
 #include <CGAL/Convex_hull_traits_adapter_2.h>
 #include <CGAL/property_map.h>
 
+#include "../lib/polyline/polyline.hpp"
+
 #include <optimization.hpp>
 
 typedef CGAL::Convex_hull_traits_adapter_2<K, CGAL::Pointer_property_map<Point>::type> Convex_hull_traits_2;
@@ -217,15 +219,15 @@ void optimization::simulated_annealing_local(void) {
     std::cout << end_area << std::endl;
 }
 
-void optimization::simulated_annealing_global(void) {
+std::vector<Point> optimization::simulated_annealing_global(std::vector<Point> points) {
     double T = 1.0;
     double R;
-    std::vector<Point> ch_points = this->get_ch(this->pl_points);
+    std::vector<Point> ch_points = this->get_ch(points);
     Polygon ch;
     for (auto it = ch_points.begin(); it != ch_points.end(); ++it) ch.push_back(*it);
 
     Polygon start_poly;
-    for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) start_poly.push_back(*it);
+    for (auto it = points.begin(); it != points.end(); ++it) start_poly.push_back(*it);
 
     double ch_area = std::abs(ch.area());
 
@@ -235,29 +237,29 @@ void optimization::simulated_annealing_global(void) {
 
     double E;
 
-    if (!this->opt.compare("-max")) E = this->pl_points.size() * (1 - start_area / ch_area);
-    else if (!this->opt.compare("-min")) E = this->pl_points.size() * start_area / ch_area;
+    if (!this->opt.compare("-max")) E = points.size() * (1 - start_area / ch_area);
+    else if (!this->opt.compare("-min")) E = points.size() * start_area / ch_area;
     
     srand((unsigned) time(NULL));
 
     while (T >= 0) {
         R = (double) rand() / RAND_MAX;
         Polygon curr_poly;
-        for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) curr_poly.push_back(*it);
+        for (auto it = points.begin(); it != points.end(); ++it) curr_poly.push_back(*it);
         double curr_area = std::abs(curr_poly.area());
         double updated_E;
 
-        int q = rand() % this->pl_points.size();
-        Point q_point = this->pl_points[q];
+        int q = rand() % points.size();
+        Point q_point = points[q];
 
-        std::vector<Point> temp_points = this->pl_points;
+        std::vector<Point> temp_points = points;
         
         auto qPos = temp_points.begin() + q;
         temp_points.erase(qPos);
 
-        int s = rand() % this->pl_points.size();
+        int s = rand() % points.size();
         auto tPos = temp_points.begin() + s + 1;
-        if(s == this->pl_points.size() - 1) tPos = temp_points.begin();
+        if(s == points.size() - 1) tPos = temp_points.begin();
 
         temp_points.insert(tPos, q_point);
 
@@ -271,39 +273,39 @@ void optimization::simulated_annealing_global(void) {
         if (!this->opt.compare("-max")) {
                 double temp_area= std::abs(temp_poly.area());
                 double diff = temp_area - curr_area;
-                updated_E = this->pl_points.size() * (1 - temp_area / ch_area);
+                updated_E = points.size() * (1 - temp_area / ch_area);
 
                 if (diff <= 0) 
                     if (exp( - ( updated_E - E) / T) < R) {
                         // T = T - 1/L;
                         continue;
                     }
-                this->pl_points = temp_points;
+                points = temp_points;
 
         }
         else if (!this->opt.compare("-min")) {
                 double temp_area= std::abs(temp_poly.area());
                 double diff = curr_area - temp_area;
-                updated_E = this->pl_points.size() * start_area / ch_area;
+                updated_E = points.size() * start_area / ch_area;
 
                 if (diff <= 0) 
                     if (exp( - ( updated_E - E) / T) < R) {
                         // T = T - 1/L;
                         continue;
                     }
-                this->pl_points = temp_points;
+                points = temp_points;
 
         }
         T = T - (double) 1 / this->L;
     }
-    this->poly_line = this->get_segment(this->pl_points);
+    // this->poly_line = this->get_segment(points);
     Polygon end_poly;
-    for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) end_poly.push_back(*it);
+    for (auto it = points.begin(); it != points.end(); ++it) end_poly.push_back(*it);
 
     double end_area = std::abs(end_poly.area());
     
     std::cout << end_area << std::endl;
-
+    return points;
 }
 
 void optimization::simulated_annealing_subdivision(void) {
@@ -312,36 +314,70 @@ void optimization::simulated_annealing_subdivision(void) {
 
     int k = std::ceil( (float) (this->pl_points.size() - 1 )/ (m - 1));
 
-    std::cout << k << std::endl;
 
-    std::vector<Point> sub_points[k];
+    std::sort(this->pl_points.begin(), this->pl_points.end(), [] (const Point &a, const Point &b) {
+        return (a.x() < b.x());
+    });
+
+    // trasform vector of points to floats for polyline to work
+    std::vector<std::pair<float, float>> float_points;
+
+    for ( auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) float_points.push_back(std::make_pair((float) it->x(),  (float) it->y()));
+
+    std::vector<std::pair<float, float>> sub_points[k];
 
     for (int i = 0; i < k; i++) {
 
-        auto start_it = std::next(this->pl_points.cbegin(), i*(m - 1));
+        auto start_it = std::next(float_points.cbegin(), i*(m - 1));
 
-        auto end_it = std::next(this->pl_points.cbegin(), i*(m - 1) + m);
+        auto end_it = std::next(float_points.cbegin(), i*(m - 1) + m);
 
         sub_points[i].resize(m);
 
         if (i*(m - 1) + m > this->pl_points.size())
         {
-            end_it = this->pl_points.cend();
+            end_it = float_points.cend();
 
             sub_points[i].resize(this->pl_points.size() - i*(m - 1));
         }   
-        std::cout << "HERE" << std::endl;
         std::copy(start_it, end_it, sub_points[i].begin());         
 
     }
+
+    std::vector<Point> polygons[k];
+    //create init  polygon
+    for (int i = 0; i < k; i++) {
+        // to be change
+        polyline S(sub_points[i], "incremental", "1", "1a", "");
+
+        std::vector<Point> small_pl_points = S.get_pl_points();
+
+
+
+        // step 1: check monotony (HOW)
+
+
+        // must mark the edges and change glabal to not switch marked edges
+        //step 2: optimize
+
+        polygons[i].resize(sub_points[i].size());
+
+        polygons[i] = this->simulated_annealing_global(small_pl_points);
+
+        
+    }
+    // connect polygons
+    // test
    for (int i = 0; i < k; i++) {
-        for (auto it = sub_points[i].begin(); it < sub_points[i].end(); ++it)
+        for (auto it = polygons[i].begin(); it < polygons[i].end(); ++it)
             std::cout << *it << " ";    
 
             std::cout << std::endl;
     }
-    
 
+    // for each set of subpoints create simple polygon using algo from part 1
+
+    //for each polygon use global annealing
 }
 
 std::vector<Point> optimization::replace_edges(Segment e, std::vector<Segment> V) {
@@ -416,7 +452,7 @@ optimization::optimization(std::vector<Point> pl_points,std::vector<Segment> pol
             else if (!alg.compare("simulated_annealing")) {
                 this->annealing = alg_param;
                 if (!alg_param.compare("local")) this->simulated_annealing_local();
-                else if (!alg_param.compare("global")) this->simulated_annealing_global();
+                else if (!alg_param.compare("global")) this->pl_points = this->simulated_annealing_global(this->pl_points);
                 else if (!alg_param.compare("subdivision")) this->simulated_annealing_subdivision();
                 else throw std::invalid_argument("\'Annealing\' must be \'local\', \'global\' or \'subdivision\'");
             }
