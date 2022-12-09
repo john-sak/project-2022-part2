@@ -24,7 +24,7 @@ class optimization {
         std::string annealing;
         void local_search(void);
         void simulated_annealing_local(void);
-        void simulated_annealing_global(void);
+        std::vector<Point> simulated_annealing_global(std::vector<Point>);
         void simulated_annealing_subdivision(void);
         std::vector<Point> replace_edges(Segment, std::vector<Segment>);
         std::vector<Segment> get_segment(std::vector<Point>);
