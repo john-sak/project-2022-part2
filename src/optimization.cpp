@@ -390,6 +390,9 @@ void optimization::simulated_annealing_subdivision(void) {
 
     for (int i = 0; i < k; i++) {
 
+        //build subsets "as we go" with each set containing m-5..m..m+5 points
+        //and check monotony before building
+
         auto start_it = std::next(float_points.cbegin(), i*(m - 1));
 
         auto end_it = std::next(float_points.cbegin(), i*(m - 1) + m);
@@ -413,10 +416,6 @@ void optimization::simulated_annealing_subdivision(void) {
         polyline S(sub_points[i], "incremental", "1", "1a", "");
 
         std::vector<Point> small_pl_points = S.get_pl_points();
-
-
-
-        // step 1: check monotony (HOW)
 
 
         // must mark the edges and change glabal to not switch marked edges
