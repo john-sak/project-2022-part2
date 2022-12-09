@@ -178,7 +178,8 @@ void optimization::simulated_annealing_local(void) {
         temp_points.erase(qPos);
 
         auto sPos = temp_points.begin() + q + 1; // q + 2 to get s, -1 because of line 178
-        if (q == this->pl_points.size() - 2) sPos = temp_points.begin();
+        if (q == this->pl_points.size() - 1) sPos = temp_points.begin() + 1;
+        else if (q == this->pl_points.size() - 2) sPos = temp_points.begin();
 
         temp_points.insert(sPos, q_point);
 
