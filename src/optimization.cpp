@@ -177,7 +177,7 @@ void optimization::simulated_annealing_local(void) {
         auto qPos = temp_points.begin() + q;
         temp_points.erase(qPos);
 
-        auto sPos = temp_points.begin() + q + 2;
+        auto sPos = temp_points.begin() + q + 1; // q + 2 to get s, -1 because of line 178
         if (q == this->pl_points.size() - 2) sPos = temp_points.begin();
 
         temp_points.insert(sPos, q_point);
@@ -201,8 +201,8 @@ void optimization::simulated_annealing_local(void) {
         std::vector<Segment> lines;
         for (auto it = temp_points.begin(); it != temp_points.end(); it++) {
             if (std::find(result.begin(), result.end(), *it) != result.end()) {
-                auto it_next = (it == temp_points.end() - 1 ? temp_points.begin() ? it + 1);
-                auto it_prev = (it == temp_points.begin() ? temp_points.end() - 1 ? it - 1);
+                auto it_next = (it == temp_points.end() - 1 ? temp_points.begin() : it + 1);
+                auto it_prev = (it == temp_points.begin() ? temp_points.end() - 1 : it - 1);
                 lines.push_back(Segment(*it, *it_next));
                 lines.push_back(Segment(*it_prev, *it));
             }
