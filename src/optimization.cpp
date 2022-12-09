@@ -6,11 +6,18 @@
 #include <CGAL/Convex_hull_traits_adapter_2.h>
 #include <CGAL/property_map.h>
 
-#include "../lib/polyline/polyline.hpp"
+#include <CGAL/Kd_tree.h>
+#include <CGAL/Fuzzy_iso_box.h>
+#include <CGAL/Search_traits_2.h>
 
+#include "../lib/polyline/polyline.hpp"
 #include <optimization.hpp>
 
 typedef CGAL::Convex_hull_traits_adapter_2<K, CGAL::Pointer_property_map<Point>::type> Convex_hull_traits_2;
+
+typedef CGAL::Search_traits_2<K> Traits;
+typedef CGAL::Kd_tree<Traits> Tree;
+typedef CGAL::Fuzzy_iso_box<Traits> Fuzzy_iso_box;
 
 bool compareAreaChange(const update_node& a, const update_node& b)
 {
@@ -150,11 +157,12 @@ void optimization::simulated_annealing_local(void) {
     double E;
 
     if (!this->opt.compare("-max")) E = this->pl_points.size() * (1 - start_area / ch_area);
-    else if (!this->opt.compare("-min")) E = this->pl_points.size() * start_area / ch_area;
-    
+    else E = this->pl_points.size() * start_area / ch_area;
+
     srand((unsigned) time(NULL));
 
-    // kd-tree initialization here?
+    Tree tree;
+    for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) tree.insert(*it);
 
     while (T >= 0) {
         Polygon curr_poly;
@@ -166,56 +174,110 @@ void optimization::simulated_annealing_local(void) {
         Point q_point = this->pl_points[q];
 
         std::vector<Point> temp_points = this->pl_points;
-        
+
         auto qPos = temp_points.begin() + q;
         temp_points.erase(qPos);
 
-        auto tPos = temp_points.begin() + q + 2;
-        if(q == this->pl_points.size() - 2) tPos = temp_points.begin();
+        auto sPos = temp_points.begin() + q + 1; // q + 2 to get s, -1 because of line 178
+        if (q == this->pl_points.size() - 1) sPos = temp_points.begin() + 1;
+        else if (q == this->pl_points.size() - 2) sPos = temp_points.begin();
 
-        temp_points.insert(tPos, q_point);
+        temp_points.insert(sPos, q_point);
 
         Polygon temp_poly;
         for (auto it = temp_points.begin(); it != temp_points.end(); ++it) temp_poly.push_back(*it);
 
-        // if (!temp_poly.is_simple()) continue;
-        
-        // kd-tree validity check
-        
+        int p = (q > 0 ? q - 1 : this->pl_points.size() - 1);
+        int r = (q < this->pl_points.size() - 1 ? q + 1 : 0);
+        int s = (r < this->pl_points.size() - 1 ? r + 1 : 0);
+
+        Point p_point = this->pl_points[p], r_point = this->pl_points[r], s_point = this->pl_points[s];
+
+        Point up_ri_point(std::max({p_point.x(), q_point.x(), r_point.x(), s_point.x()}), std::max({p_point.y(), q_point.y(), r_point.y(), s_point.y()}));
+        Point lo_le_point(std::min({p_point.x(), q_point.x(), r_point.x(), s_point.x()}), std::min({p_point.y(), q_point.y(), r_point.y(), s_point.y()}));
+
+        std::list<Point> result;
+        Fuzzy_iso_box exact_range(lo_le_point, up_ri_point);
+        tree.search(std::back_inserter(result), exact_range);
+
+
+        std::vector<Segment> temp_line = this->get_segment(temp_points);
+        std::vector<Segment> lines;
+
+        for(auto it = temp_line.begin(); it != temp_line.end(); it++) {
+            if(std::find(result.begin(), result.end(),it->source())!= result.end() || std::find(result.begin(), result.end(),it->target()) != result.end())
+                lines.push_back(*it);
+        }
+
+        int flag = 0;
+        Segment pr(p_point, r_point), qs(q_point, s_point);
+
+        if (intersection(qs, pr)) continue;
+        auto qsPos = std::find(lines.begin(), lines.end(), qs);
+        lines.erase(qsPos);
+
+        auto rqPos = std::find(lines.begin(), lines.end(), Segment(pr.target(), qs.source()));
+        lines.erase(rqPos);
+
+
+        auto prPos = std::find(lines.begin(), lines.end(), pr);
+        lines.erase(prPos);
+
+        for (Segment line : lines) {
+            CGAL::Object result = intersection(line, pr);
+            Point isPoint;
+            Segment isSeg;
+            // if line intersects whether pr or qs, this solution is *not* valid
+            if (CGAL::assign(isPoint, result) &&  !(line.target() == pr.source())) {
+                flag = 1;
+                break;
+            }
+            else if (CGAL::assign(isSeg, result)) {
+                flag = 1;
+                break;
+
+            }
+            result = intersection(line, qs);
+            if (CGAL::assign(isPoint, result) &&  !(line.source() == qs.target())) {
+                flag = 1;
+                break;
+            }
+            else if (CGAL::assign(isSeg, result)) {
+                flag = 1;
+                break;
+
+            }
+
+        }
+            
+        if (flag == 1) continue;
+
         if (!this->opt.compare("-max")) {
                 double temp_area= std::abs(temp_poly.area());
                 double diff = temp_area - curr_area;
                 updated_E = this->pl_points.size() * (1 - temp_area / ch_area);
 
                 if (diff <= 0) 
-                    if (exp( - ( updated_E - E) / T) < R) {
-                        // T = T - 1/L;
-                        continue;
-                    }
+                    if (exp( - ( updated_E - E) / T) < R) continue;
                 this->pl_points = temp_points;
-
-        }
-        else if (!this->opt.compare("-min")) {
+        } else if (!this->opt.compare("-min")) {
                 double temp_area= std::abs(temp_poly.area());
                 double diff = curr_area - temp_area;
                 updated_E = this->pl_points.size() * start_area / ch_area;
 
                 if (diff <= 0) 
-                    if (exp( - ( updated_E - E) / T) < R) {
-                        // T = T - 1/L;
-                        continue;
-                    }
+                    if (exp( - ( updated_E - E) / T) < R) continue;
                 this->pl_points = temp_points;
-
         }
         T = T - (double) 1 / this->L;
     }
     this->poly_line = this->get_segment(this->pl_points);
     Polygon end_poly;
     for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) end_poly.push_back(*it);
+    if(!end_poly.is_simple()) std::cout << "FUCKK" << std::endl;
 
     double end_area = std::abs(end_poly.area());
-    
+
     std::cout << end_area << std::endl;
 }
 
