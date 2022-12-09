@@ -199,26 +199,56 @@ void optimization::simulated_annealing_local(void) {
         Fuzzy_iso_box exact_range(lo_le_point, up_ri_point);
         tree.search(std::back_inserter(result), exact_range);
 
+
+        std::vector<Segment> temp_line = this->get_segment(temp_points);
         std::vector<Segment> lines;
-        for (auto it = temp_points.begin(); it != temp_points.end(); it++) {
-            if (std::find(result.begin(), result.end(), *it) != result.end()) {
-                auto it_next = (it == temp_points.end() - 1 ? temp_points.begin() : it + 1);
-                auto it_prev = (it == temp_points.begin() ? temp_points.end() - 1 : it - 1);
-                lines.push_back(Segment(*it, *it_next));
-                lines.push_back(Segment(*it_prev, *it));
-            }
+
+        for(auto it = temp_line.begin(); it != temp_line.end(); it++) {
+            if(std::find(result.begin(), result.end(),it->source())!= result.end() || std::find(result.begin(), result.end(),it->target()) != result.end())
+                lines.push_back(*it);
         }
 
         int flag = 0;
         Segment pr(p_point, r_point), qs(q_point, s_point);
+
+        if (intersection(qs, pr)) continue;
+        auto qsPos = std::find(lines.begin(), lines.end(), qs);
+        lines.erase(qsPos);
+
+        auto rqPos = std::find(lines.begin(), lines.end(), Segment(pr.target(), qs.source()));
+        lines.erase(rqPos);
+
+
+        auto prPos = std::find(lines.begin(), lines.end(), pr);
+        lines.erase(prPos);
+
         for (Segment line : lines) {
+            CGAL::Object result = intersection(line, pr);
+            Point isPoint;
+            Segment isSeg;
             // if line intersects whether pr or qs, this solution is *not* valid
-            if (intersection(line, pr) || intersection(line, qs)) {
+            if (CGAL::assign(isPoint, result) &&  !(line.target() == pr.source())) {
                 flag = 1;
                 break;
             }
-        }
+            else if (CGAL::assign(isSeg, result)) {
+                flag = 1;
+                break;
 
+            }
+            result = intersection(line, qs);
+            if (CGAL::assign(isPoint, result) &&  !(line.source() == qs.target())) {
+                flag = 1;
+                break;
+            }
+            else if (CGAL::assign(isSeg, result)) {
+                flag = 1;
+                break;
+
+            }
+
+        }
+            
         if (flag == 1) continue;
 
         if (!this->opt.compare("-max")) {
@@ -226,14 +256,16 @@ void optimization::simulated_annealing_local(void) {
                 double diff = temp_area - curr_area;
                 updated_E = this->pl_points.size() * (1 - temp_area / ch_area);
 
-                if (diff <= 0 && (exp( - ( updated_E - E) / T) < R)) continue;
+                if (diff <= 0) 
+                    if (exp( - ( updated_E - E) / T) < R) continue;
                 this->pl_points = temp_points;
         } else if (!this->opt.compare("-min")) {
                 double temp_area= std::abs(temp_poly.area());
                 double diff = curr_area - temp_area;
                 updated_E = this->pl_points.size() * start_area / ch_area;
 
-                if (diff <= 0 && (exp( - ( updated_E - E) / T) < R)) continue;
+                if (diff <= 0) 
+                    if (exp( - ( updated_E - E) / T) < R) continue;
                 this->pl_points = temp_points;
         }
         T = T - (double) 1 / this->L;
@@ -241,6 +273,7 @@ void optimization::simulated_annealing_local(void) {
     this->poly_line = this->get_segment(this->pl_points);
     Polygon end_poly;
     for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) end_poly.push_back(*it);
+    if(!end_poly.is_simple()) std::cout << "FUCKK" << std::endl;
 
     double end_area = std::abs(end_poly.area());
 
