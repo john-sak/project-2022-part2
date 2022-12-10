@@ -374,19 +374,33 @@ void optimization::simulated_annealing_subdivision(void) {
     // m to be change
     int m = 10;
 
-    int k = std::ceil( (float) (this->pl_points.size() - 1 )/ (m - 1));
-
-
     std::sort(this->pl_points.begin(), this->pl_points.end(), [] (const Point &a, const Point &b) {
         return (a.x() < b.x());
     });
 
-    // trasform vector of points to floats for polyline to work
-    std::vector<std::pair<float, float>> float_points;
+    std::vector<std::vector<std::pair<Point>>> sub_points;
 
-    for ( auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) float_points.push_back(std::make_pair((float) it->x(),  (float) it->y()));
-
-    std::vector<std::pair<float, float>> sub_points[k];
+    int i = 0;
+    while (i < this->pl_points.size()) {
+        std::vector<std::pair<Point>> division;
+        for (int j = 0; j < std::ceil(0.75 * m) && i < this->pl_points.size(); j++, i++) {
+            division.push_back(this->pl_points[i]);
+            // i++;
+        }
+        if (i == this->pl_points.size()) {
+            sub_points.push_back(division);
+            break;
+        }
+        int j = 0;
+        while (!(this->pl_points[i - 1].y() < this->pl_points[i].y() && this->pl_points[i].y() > this->pl_points[i + 1].y())) {
+            division.push_back(this->pl_points[i]);
+            i++;
+            j++;
+            if (i == this->pl_points.size()) break;
+            if (j == std::ceil(0.5 * m)) throw std::exception();
+        }
+        sub_points.push_back(division);
+    }
 
     for (int i = 0; i < k; i++) {
 
