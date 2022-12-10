@@ -380,47 +380,34 @@ void optimization::simulated_annealing_subdivision(void) {
 
     std::vector<std::vector<std::pair<Point>>> sub_points;
 
-    int i = 0;
+    int i = 0, k = 0;
     while (i < this->pl_points.size()) {
         std::vector<std::pair<Point>> division;
-        for (int j = 0; j < std::ceil(0.75 * m) && i < this->pl_points.size(); j++, i++) {
-            division.push_back(this->pl_points[i]);
-            // i++;
-        }
+        for (int j = 0; j < std::ceil(0.75 * m) && i < this->pl_points.size(); j++, i++) division.push_back(this->pl_points[i]);
         if (i == this->pl_points.size()) {
             sub_points.push_back(division);
+            k++;
+            break;
+        } else if (i == this->pl_points.size() - 1) {
+            division.push_back(this->pl_points[i]);
+            sub_points.push_back(divison);
+            k++;
             break;
         }
         int j = 0;
-        while (!(this->pl_points[i - 1].y() < this->pl_points[i].y() && this->pl_points[i].y() > this->pl_points[i + 1].y())) {
+        while (!(this->pl_points[i - 2].y() < this->pl_points[i - 1].y() && this->pl_points[i - 1].y() > this->pl_points[i].y())) {
             division.push_back(this->pl_points[i]);
             i++;
             j++;
-            if (i == this->pl_points.size()) break;
+            if (i == this->pl_points.size() - 1) {
+                divison.push_back(this->pl_points[i]);
+                break;
+            }
             if (j == std::ceil(0.5 * m)) throw std::exception();
         }
+        i--;
         sub_points.push_back(division);
-    }
-
-    for (int i = 0; i < k; i++) {
-
-        //build subsets "as we go" with each set containing m-5..m..m+5 points
-        //and check monotony before building
-
-        auto start_it = std::next(float_points.cbegin(), i*(m - 1));
-
-        auto end_it = std::next(float_points.cbegin(), i*(m - 1) + m);
-
-        sub_points[i].resize(m);
-
-        if (i*(m - 1) + m > this->pl_points.size())
-        {
-            end_it = float_points.cend();
-
-            sub_points[i].resize(this->pl_points.size() - i*(m - 1));
-        }   
-        std::copy(start_it, end_it, sub_points[i].begin());         
-
+        k++;
     }
 
     std::vector<Point> polygons[k];
