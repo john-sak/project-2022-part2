@@ -392,76 +392,84 @@ std::vector<Point> optimization::simulated_annealing_global(std::vector<Point> p
     return points;
 }
 
-// void optimization::simulated_annealing_subdivision(void) {
-//     // m to be change
-//     int m = 10;
+ void optimization::simulated_annealing_subdivision(void) {
+     // m to be change
+     int m = 10;
 
-//     int k = std::ceil( (float) (this->pl_points.size() - 1 )/ (m - 1));
+    std::sort(this->pl_points.begin(), this->pl_points.end(), [] (const Point &a, const Point &b) {
+        return (a.x() < b.x());
+    });
 
+    std::vector<std::vector<Point>> sub_points;
+    std::vector<std::list<Segment>> marked_edges;
 
-//     std::sort(this->pl_points.begin(), this->pl_points.end(), [] (const Point &a, const Point &b) {
-//         return (a.x() < b.x());
-//     });
+    int i = 0, k = 0;
+    while (i < this->pl_points.size()) {
+        std::vector<Point> division;
+        std::list<Segment> marked;
 
-//     // trasform vector of points to floats for polyline to work
-//     std::vector<std::pair<float, float>> float_points;
+        if (k != 0) marked.push_back(Segment(this->pl_points[i], this->pl_points[i + 1]));
+        for (int j = 0; j < std::ceil(0.75 * m) && i < this->pl_points.size(); j++, i++) division.push_back(this->pl_points[i]);
+        if (i >= this->pl_points.size() - 1) {
+            if (i == this->pl_points.size() - 1) division.push_back(this->pl_points[i]);
+            sub_points.push_back(division);
+            marked_edges.push_back(marked);
+            k++;
+            break;
+        }
+        int j = 0;
+        while (!(this->pl_points[i - 2].y() < this->pl_points[i - 1].y() && this->pl_points[i - 1].y() > this->pl_points[i].y())) {
+            division.push_back(this->pl_points[i]);
+            i++;
+            j++;
+            if (i == this->pl_points.size() - 1) {
+                division.push_back(this->pl_points[i]);
+                i++;
+                break;
+            }
+            if (j == std::ceil(0.5 * m)) throw std::exception();
+        }
+        if (i != this->pl_points.size()) {
+            i--;
+            marked.push_back(Segment(this->pl_points[i - 1], this->pl_points[i]));
+        }
+        marked_edges.push_back(marked);
+        sub_points.push_back(division);
+        k++;
+    }
 
-//     for ( auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) float_points.push_back(std::make_pair((float) it->x(),  (float) it->y()));
+    std::vector<Point> polygons[k];
+    //create init  polygon
+    for (int i = 0; i < k; i++) {
+        // sub_points[i] contains Point, we want std::pair<float, float>
+        std::vector<std::pair<float, float>> floats;
 
-//     std::vector<std::pair<float, float>> sub_points[k];
+        polyline S(floats, "incremental", "1", "1a", "");
 
-//     for (int i = 0; i < k; i++) {
+         polygons[i].resize(sub_points[i].size());
 
-//         //build subsets "as we go" with each set containing m-5..m..m+5 points
-//         //and check monotony before building
+        int tries = 0;
+        while (tries < 1000) {
+            polygons[i] = this->simulated_annealing_global(sub_points[i]);
+            tries++;
 
-//         auto start_it = std::next(float_points.cbegin(), i*(m - 1));
+            // if (ploygons[i] contains marked_edges[i]) break;
+        }
+        if (tries > 1000) throw std::exception();
+    }
 
-//         auto end_it = std::next(float_points.cbegin(), i*(m - 1) + m);
+    // connect polygons
 
-//         sub_points[i].resize(m);
+    for (int i = 0; i < k; i++) {
+        for (auto it = polygons[i].begin(); it < polygons[i].end(); ++it)
+            std::cout << *it << " ";    
+             std::cout << std::endl;
+     }
 
-//         if (i*(m - 1) + m > this->pl_points.size())
-//         {
-//             end_it = float_points.cend();
+     // for each set of subpoints create simple polygon using algo from part 1
 
-//             sub_points[i].resize(this->pl_points.size() - i*(m - 1));
-//         }   
-//         std::copy(start_it, end_it, sub_points[i].begin());         
-
-//     }
-
-//     std::vector<Point> polygons[k];
-//     //create init  polygon
-//     for (int i = 0; i < k; i++) {
-//         // to be change
-//         polyline S(sub_points[i], "incremental", "1", "1a", "");
-
-//         std::vector<Point> small_pl_points = S.get_pl_points();
-
-
-//         // must mark the edges and change glabal to not switch marked edges
-//         //step 2: optimize
-
-//         polygons[i].resize(sub_points[i].size());
-
-//         polygons[i] = this->simulated_annealing_global(small_pl_points);
-
-        
-//     }
-//     // connect polygons
-//     // test
-//    for (int i = 0; i < k; i++) {
-//         for (auto it = polygons[i].begin(); it < polygons[i].end(); ++it)
-//             std::cout << *it << " ";    
-
-//             std::cout << std::endl;
-//     }
-
-//     // for each set of subpoints create simple polygon using algo from part 1
-
-//     //for each polygon use global annealing
-// }
+     //for each polygon use global annealing
+ }
 
 std::vector<Point> optimization::replace_edges(Segment e, std::vector<Segment> V) {
     std::vector<Point> temp_points = this->pl_points;
