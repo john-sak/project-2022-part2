@@ -392,7 +392,7 @@ std::vector<Point> optimization::simulated_annealing_global(std::vector<Point> p
     return points;
 }
 
- void optimization::simulated_annealing_subdivision(void) {
+void optimization::simulated_annealing_subdivision(void) {
     // m to be change
     int m = 10;
 
@@ -453,7 +453,14 @@ std::vector<Point> optimization::simulated_annealing_global(std::vector<Point> p
             polygons[i] = this->simulated_annealing_global(sub_points[i]);
             tries++;
 
-            // if (ploygons[i] contains marked_edges[i]) break;
+            int done = 0;
+            for (int j = 0; j < marked_edges[i].size(); j++) {
+                if (!((std::find(polygons[i].begin(), polygons[i].end(), marked_edges[i][j].source()) != polygons[i].end()) && (next or previous point in polygon[i] is marked_edges[i][j].target()))) {
+                    done = 1;
+                    break;
+                }
+            }
+            if (done == 1) break;
         }
         if (tries > 1000) throw std::exception();
     }
