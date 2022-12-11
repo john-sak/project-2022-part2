@@ -55,7 +55,40 @@
 
 ## Σχολιασμός αποτελεσμάτων
 
-| File | Initialization | Algorithm | L | Min or Max | Threshold | Annealing | Init Ratio | Optimized Ratio | Time |
+| File | Initialization | Algorithm | L | Min/Max | Threshold | Annealing | Init Ratio | Optimized Ratio | Time (msec) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| euro-night-0000010 | Incremental | local_search | 2 | Max | 0.1 | - | 0.672225 | 0.846002 | 1 msec |
- 
+| euro-night-0000010 | incremental | local_search | 2 | max | 0.1 | - | 0.672225 | 0.846002 | 1 |
+| euro-night-0000010 | incremental | local_search | 5 | max | 0.1 | - | 0.672225 | 0.863394 | 4 |
+| euro-night-0000010 | incremental | local_search | 2 | min | 0.1 | - | 0.672225 | 0.607459 | 0 |
+| euro-night-0000010 | incremental | local_search | 5 | min | 0.1 | - | 0.672225 | 0.6068 | 1 |
+| euro-night-0000020 | incremental | local_search | 5 | max | 0.1 | - | 0.465846 | 0.466686 | 8 |
+| euro-night-0000020 | incremental | local_search | 10 | max | 0.1 | - | 0.465846 | 0.545381 | 12 |
+| euro-night-0000020 | incremental | local_search | 10 | min | 0.1 | - | 0.465846 | 0.28569 | 6 |
+| euro-night-0000050 | incremental | local_search | 10 | max | 0.1 | - | 0.506611 | 0.51712 | 108 |
+| euro-night-0000050 | incremental | local_search | 20 | max | 0.1 | - | 0.506611 | 0.556347 | 155 |
+| euro-night-0000050 | incremental | local_search | 20 | min | 0.1 | - | 0.506611 | 0.486275 | 71 |
+| euro-night-0000070 | incremental | local_search | 10 | max | 0.1 | - | 0.448288 | 0.472937 | 537 |
+| euro-night-0000070 | incremental | local_search | 10 | min | 0.1 | - | 0.448288 | 0.442991 | 136 |
+| euro-night-0000300 | incremental | local_search | 20 | max | 0.1 | - | 0.545025 | 0.54527 | 27146 |
+| euro-night-0000500 | incremental | local_search | 30 | min | 0.1 | - | 0.497843 | 0.497312 | 81504 |
+| euro-night-0000010 | incremental | simulated_annealing | 10 | max | - | global | 0.672225 | 0.788115 | 6630 |
+| euro-night-0000010 | incremental | simulated_annealing | 10 | max | - | local | 0.672225 | 0.788115 | 11512 |
+| euro-night-0000050 | incremental | simulated_annealing | 10 | max | - | global | 0.506611 | 0.513605 | 111289 |
+| euro-night-0000050 | incremental | simulated_annealing | 10 | max | - | local | 0.506611 | 0.510716 | 9561 |
+| euro-night-0000500 | incremental | simulated_annealing | 50 | max | - | global | 0.497843 | 0.498124 | 1214738 |
+| uniform-0000010-1 | incremental | local_search | 5 | max | 0.1 | - | 0.475684 | 0.533875 | 2 |
+| uniform-0000010-2 | incremental | local_search | 5 | min | 0.1 | - | 0.594096 | 0.568609 | 0 |
+| uniform-0000050-1 | incremental | local_search | 10 | max | 0.1 | - | 0.521996 | 0.554135 | 92 |
+| uniform-0000100-1 | incremental | local_search | 10 | max | 0.1 | - | 0.531515 | 0.535524 | 684 |
+| uniform-0000010-1 | incremental | simulated_annealing | 5 | min | - | global | 0.475684 | 0.351727 | 28342 |
+| uniform-0000050-1 | incremental | simulated_annealing | 10 | max | - | local | 0.518126 | 0.539427 | 4343 |
+| uniform-0000050-2 | incremental | simulated_annealing | 10 | min | - | global | 0.518126 | 0.517346 | 44048 |
+| uniform-0000100-1 | incremental | simulated_annealing | 10 | max | - | global | 0.531515 | 0.540023 | 98446 |
+| euro-night-0000010 | convex_hull | local_search | 5 | max | 0.1 | - | 0.672225 | 0.863394 | 1 |
+| euro-night-0000050 | convex_hull | local_search | 10 | max | 0.1 | - | 0.506611 | 0.51712 | 104 |
+| euro-night-0000300 | convex_hull | local_search | 10 | min | 0.1 | - | 0.545025 | 0.538688 | 10645 |
+| euro-night-0000010 | convex_hull | simulated_annealing | 5 | max | - | global | 0.672225 | 0.686986 | 491 |
+| euro-night-0000050 | convex_hull | simulated_annealing | 10 | min | - | local | 0.506611 | 0.495236 | 1 |
+| euro-night-0000300 | convex_hull | simulated_annealing | 100 | max | - | global | 0.545025 | 0.545019 | 281710 |
+
+Παρατηρούμε ότι ο αλγόριθμος `local_search` εκτελείται ταχύτερα από τις παραλλαγές του `simulated_annealing`. Όσον αφορά την βελτιστοποίηση του εμβαδού του πολυγώνου στον `local_search` παρατηρούμε ότι όσο μεγαλώνει ο αριθμός των σημείων η αλλαγή στο εμβαδόν γίνεται μικρότερη. Η επίδοση του `simulated_annealing` εξαρτάται από την αρχική τυχαία επιλογή σημείων και μπορεί να διαφέρει από εκτέλεση σε εκτέλεση. Τέλος παρατηρούμε ότι τα αρχεία `uniform` παρουσιάζουν ελαφρώς χαμηλότερη επίδοση ενώ οι επιδόσεις δεν εξαρτώνται από την αρχική πολυγωνοποίηση σε μεγάλο βαθμό.
