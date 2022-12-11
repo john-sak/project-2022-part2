@@ -54,3 +54,8 @@
 Η βιβλιοθήκη `optimization` αποτελείται από τα αρχεία `optimization.hpp` και `optimization.cpp`. Υλοποιεί το ζητούμενο πρόβλημα βελτιστοποίησης για αυτή την Εργασία.
 
 ## Σχολιασμός αποτελεσμάτων
+
+| File | Initialization | Algorithm | L | Min or Max | Threshold | Annealing | Init Ratio | Optimized Ratio | Time |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| euro-night-0000010 | Incremental | local_search | 2 | Max | 0.1 | - | 0.672225 | 0.846002 | 1 msec |
+ 
