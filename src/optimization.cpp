@@ -450,21 +450,29 @@ void optimization::simulated_annealing_subdivision(void) {
 
         polygons[i].resize(sub_points[i].size());
 
-        int tries = 0;
+        int tries = 0, ok = 1;
         while (tries < 1000) {
             polygons[i] = this->simulated_annealing_global(sub_points[i]);
             tries++;
 
-            int done = 0;
+            ok = 1;
             for (int j = 0; j < marked_edges[i].size(); j++) {
-                if (!((std::find(polygons[i].begin(), polygons[i].end(), marked_edges[i][j].source()) != polygons[i].end()) && (next or previous point in polygon[i] is marked_edges[i][j].target()))) {
-                    done = 1;
+                auto it = std::find(polygons[i].begin(), polygons[i].end(), marked_edges[i][j].source());
+                if (it == polygons[i].end()) {
+                    ok = 0;
+                    break;
+                }
+
+                auto it_next = (it == polygons[i].end() - 1 ? polygons[i].begin() : it + 1);
+                auto it_prev = (it == polygons[i].begin() ? polygons[i].end() - 1 : it - 1);
+                if (*it_next != marked_edges[i][j].target() && *it_prev != marked_edges[i][j].target()) {
+                    ok = 0;
                     break;
                 }
             }
-            if (done == 1) break;
+            if (ok != 0) break;
         }
-        if (tries > 1000) throw std::exception();
+        if (ok != 1) throw std::exception();
     }
 
     // connect polygons
