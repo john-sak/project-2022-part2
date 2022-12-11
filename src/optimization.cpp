@@ -459,8 +459,8 @@ void optimization::simulated_annealing_subdivision(void) {
             tries++;
 
             ok = 1;
-            for (int j = 0; j < marked_edges[i].size(); j++) {
-                auto it = std::find(polygons[i].begin(), polygons[i].end(), marked_edges[i][j].source());
+            for (auto it_marked = marked_edges[i].begin(); it_marked != marked_edges[i].end(); it_marked++) {
+                auto it = std::find(polygons[i].begin(), polygons[i].end(), it_marked->source());
                 if (it == polygons[i].end()) {
                     ok = 0;
                     break;
@@ -468,7 +468,7 @@ void optimization::simulated_annealing_subdivision(void) {
 
                 auto it_next = (it == polygons[i].end() - 1 ? polygons[i].begin() : it + 1);
                 auto it_prev = (it == polygons[i].begin() ? polygons[i].end() - 1 : it - 1);
-                if (*it_next != marked_edges[i][j].target() && *it_prev != marked_edges[i][j].target()) {
+                if (*it_next != it_marked->target() && *it_prev != it_marked->target()) {
                     ok = 0;
                     break;
                 }
@@ -477,42 +477,41 @@ void optimization::simulated_annealing_subdivision(void) {
         }
         if (ok != 1) throw std::exception();
 
-        switch (i) {
-            case 0:
-                auto q_point = std::find(polygons[i].begin(), polygons[i].end(), marked_edges[i][0].target());
-                if (q_point == polygons[i].end()) throw std::exception();
-                if (polygons[i].begin().y() > *(polygons[i].begin() + 1).y()) {
-                    for (auto it = polygons[i].begin(); it != q_point; it++) lower_hull.push_back(*it);
-                    for (auto it = q_point; it != polygons[i].end(); it++) upper_hull.push_back(*it);
-                } else {
-                    lower_hull.push_back(polygons[i].begin());
-                    for (auto it = polygons[i].end() - 1; it != q_point; it--) lower_hull.push_back(*it);
-                    for (auto it = q_point; it != polygons[i].begin(); it--) upper_hull.push_back(*it);
-                }
-                break;
-            case k - 1:
-                if (polygons[i].begin().y() > *(polygons[i].begin() + 1).y()) for (auto it = polygons[i].begin() + 1; it != polygons[i].end(); it++) lower_hull.push_back(*it);
-                else for (auto it = polygons[i].end() - 1; it != polygons[i].begin(); it--) lower_hull.push_back(*it);
-                break;
-            default:
-                auto q_point = std::find(polygons[i].begin(), polygons[i].end(), marked_edges[i][1].target());
-                if (q_point == polygons[i].end()) throw std::exception();
-                auto start = upper_hull.begin();
-                if (polygons[i].begin().y() > *(polygons[i].begin() + 1).y()) {
-                    for (auto it = polygons[i].begin() + 1; it != q_point; it++) lower_hull.push_back(*it);
-                    for (auto it = q_point; it != polygons[i].end(); it++) upper_hull.insert(start, *it);
-                } else {
-                    for (auto it = polygons[i].end() - 1; it != q_point; it--) lower_hull.push_back(*it);
-                    for (auto it = q_point; it != polygons[i].begin(); it--) upper_hull.insert(start, *it);
-                }
-                break;
+        if (i == 0) {
+            auto it_list = marked_edges[i].begin();
+            auto q_point = std::find(polygons[i].begin(), polygons[i].end(), it_list->target());
+            if (q_point == polygons[i].end()) throw std::exception();
+            if (polygons[i].begin()->y() > std::next(polygons[i].begin())->y()) {
+                for (auto it = polygons[i].begin(); it != q_point; it++) lower_hull.push_back(*it);
+                for (auto it = q_point; it != polygons[i].end(); it++) upper_hull.push_back(*it);
+            } else {
+                lower_hull.push_back(*polygons[i].begin());
+                for (auto it = polygons[i].end() - 1; it != q_point; it--) lower_hull.push_back(*it);
+                for (auto it = q_point; it != polygons[i].begin(); it--) upper_hull.push_back(*it);
+            }
+        } else if (i == k - 1) {
+            if (polygons[i].begin()->y() > std::next(polygons[i].begin())->y()) for (auto it = std::next(polygons[i].begin()); it != polygons[i].end(); it++) lower_hull.push_back(*it);
+            else for (auto it = polygons[i].end() - 1; it != polygons[i].begin(); it--) lower_hull.push_back(*it);
+        } else {
+            auto it_list = std::next(marked_edges[i].begin());
+            auto q_point = std::find(polygons[i].begin(), polygons[i].end(), it_list->target());
+            if (q_point == polygons[i].end()) throw std::exception();
+            auto start = upper_hull.begin();
+            if (polygons[i].begin()->y() > std::next(polygons[i].begin())->y()) {
+                for (auto it = std::next(polygons[i].begin()); it != q_point; it++) lower_hull.push_back(*it);
+                for (auto it = q_point; it != polygons[i].end(); it++) upper_hull.insert(start, *it);
+            } else {
+                for (auto it = polygons[i].end() - 1; it != q_point; it--) lower_hull.push_back(*it);
+                for (auto it = q_point; it != polygons[i].begin(); it--) upper_hull.insert(start, *it);
+            }
         }
     }
-
 
     std::vector<Point> all_points;
     for (auto it = lower_hull.begin(); it != lower_hull.end(); it++) all_points.push_back(*it);
     for (auto it = upper_hull.begin(); it != upper_hull.end(); it++) all_points.push_back(*it);
+
+    for (auto it = all_points.begin(); it != all_points.end(); it++) std::cout << *it << std::endl;
 
     // just need to do
     // this->pl_points = all_points
