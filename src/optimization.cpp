@@ -489,7 +489,7 @@ void optimization::simulated_annealing_subdivision(void) {
                 for (auto it = polygons[i].end() - 1; it != q_point; it--) lower_hull.push_back(*it);
                 for (auto it = q_point; it != polygons[i].begin(); it--) upper_hull.push_back(*it);
             }
-        } else if (i == k - 1) {
+        } else if (i == (k - 1)) {
             if (polygons[i].begin()->y() > std::next(polygons[i].begin())->y()) for (auto it = std::next(polygons[i].begin()); it != polygons[i].end(); it++) lower_hull.push_back(*it);
             else for (auto it = polygons[i].end() - 1; it != polygons[i].begin(); it--) lower_hull.push_back(*it);
         } else {
