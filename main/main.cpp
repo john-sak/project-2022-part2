@@ -14,9 +14,9 @@ int main(int argc, char *argv[]) {
     try {
         // get arguments from command line
         arguments arg(argc, argv);
-        // run the given algorithm, write results in given out_file
+        // create initial polygon
         polyline S(arg.get_points(), POLY_ALGO, EDDGE_SEL, INIT, arg.get_out_file());
-
+        // optimize polygon area, write results in given out_file
         optimization O(S.get_pl_points(),S.get_poly_line(), arg.get_alg(), arg.get_L(), arg.get_opt(), arg.get_alg_param(), arg.get_out_file());
 
     } catch (std::invalid_argument const &ex) {
