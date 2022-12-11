@@ -167,24 +167,11 @@ void optimization::local_search(void) {
 void optimization::simulated_annealing_local(void) {
     double T = 1.0;
     double R;
-    // get convex hull
-    std::vector<Point> ch_points = this->get_ch(this->pl_points);
-    Polygon ch;
-    for (auto it = ch_points.begin(); it != ch_points.end(); ++it) ch.push_back(*it);
-
-    Polygon start_poly;
-    for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) start_poly.push_back(*it);
-    // get convex hull area
-    this->ch_area = std::abs(ch.area());
-    // get initial polygon area
-    double start_area = std::abs(start_poly.area());
-    this->start_area = std::abs(start_poly.area());
-
     double E;
 
     // calculate initial energy
-    if (!this->opt.compare("-max")) E = this->pl_points.size() * (1 - start_area / this->ch_area);
-    else E = this->pl_points.size() * start_area / this->ch_area;
+    if (!this->opt.compare("-max")) E = this->pl_points.size() * (1 - this->start_area / this->ch_area);
+    else E = this->pl_points.size() * this->start_area / this->ch_area;
 
     // initialize kd-tree
     Tree tree;
@@ -323,49 +310,46 @@ void optimization::simulated_annealing_local(void) {
     this->write_to_file("simulated_annealing", std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count());
 }
 
-void optimization::simulated_annealing_global(void) {
+std::vector<Point> optimization::simulated_annealing_global(std::vector<Point> points) {
     double T = 1.0;
     double R;
     // get convex hull
-    std::vector<Point> ch_points = this->get_ch(this->pl_points);
+    std::vector<Point> ch_points = this->get_ch(points);
     Polygon ch;
     for (auto it = ch_points.begin(); it != ch_points.end(); ++it) ch.push_back(*it);
 
     Polygon start_poly;
-    for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) start_poly.push_back(*it);
+    for (auto it = points.begin(); it != points.end(); ++it) start_poly.push_back(*it);
     // get convex hull area
-    this->ch_area = std::abs(ch.area());
+    double ch_area = std::abs(ch.area());
     // get initial polygon area
     double start_area = std::abs(start_poly.area());
-    this->start_area = std::abs(start_poly.area());
 
     double E;
     // calculate initial energy
-    if (!this->opt.compare("-max")) E = this->pl_points.size() * (1 - start_area / this->ch_area);
-    else if (!this->opt.compare("-min")) E = this->pl_points.size() * start_area / this->ch_area;
+    if (!this->opt.compare("-max")) E = points.size() * (1 - start_area / ch_area);
+    else if (!this->opt.compare("-min")) E = points.size() * start_area / ch_area;
     
-    auto start = std::chrono::high_resolution_clock::now();
-
     while (T >= 0) {
         srand((unsigned) time(NULL));
         R = (double) rand() / RAND_MAX;
         Polygon curr_poly;
-        for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) curr_poly.push_back(*it);
+        for (auto it = points.begin(); it != points.end(); ++it) curr_poly.push_back(*it);
         // get current area
         double curr_area = std::abs(curr_poly.area());
         double updated_E;
 
-        int q = rand() % this->pl_points.size();
-        Point q_point = this->pl_points[q];
+        int q = rand() % points.size();
+        Point q_point = points[q];
 
-        std::vector<Point> temp_points = this->pl_points;
+        std::vector<Point> temp_points = points;
         // do global transition
         auto qPos = temp_points.begin() + q;
         temp_points.erase(qPos);
 
-        int s = rand() % this->pl_points.size();
+        int s = rand() % points.size();
         auto tPos = temp_points.begin() + s + 1;
-        if(s == this->pl_points.size() - 1) tPos = temp_points.begin();
+        if(s == points.size() - 1) tPos = temp_points.begin();
 
         temp_points.insert(tPos, q_point);
 
@@ -381,12 +365,12 @@ void optimization::simulated_annealing_global(void) {
                 double temp_area= std::abs(temp_poly.area());
                 double diff = temp_area - curr_area;
                 // get updated energy
-                updated_E = this->pl_points.size() * (1 - temp_area / this->ch_area);
+                updated_E = points.size() * (1 - temp_area / ch_area);
                 // check if area is optimized or metropolis criterion is valid
                 if (diff <= 0) 
                     if (exp( - ( updated_E - E) / T) < R) continue;
                 // update polygon line
-                this->pl_points = temp_points;
+                points = temp_points;
 
         }
         else if (!this->opt.compare("-min")) {
@@ -394,28 +378,18 @@ void optimization::simulated_annealing_global(void) {
                 double temp_area= std::abs(temp_poly.area());
                 double diff = curr_area - temp_area;
                 // get updated energy
-                updated_E = this->pl_points.size() * temp_area / this->ch_area;
+                updated_E = points.size() * temp_area / ch_area;
                 // check if area is optimized or metropolis criterion is valid
                 if (diff <= 0) 
                     if (exp( - ( updated_E - E) / T) < R) continue;
                 // update polygon line
-                this->pl_points = temp_points;
+                points = temp_points;
 
         }
         // update T
         T = T - (double) 1 / this->L;
     }
-
-    auto stop = std::chrono::high_resolution_clock::now();
-
-    // get final segment
-    this->poly_line = this->get_segment(this->pl_points);
-    Polygon end_poly;
-    for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) end_poly.push_back(*it);
-    // get final area
-    this->end_area = std::abs(end_poly.area());
-    
-    this->write_to_file("simulated_annealing", std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count());
+    return points;
 }
 
 // void optimization::simulated_annealing_subdivision(void) {
@@ -570,8 +544,8 @@ void optimization::write_to_file(std::string alg, int time) const {
 
 
 
-optimization::optimization(std::vector<Point> pl_points,std::vector<Segment> poly_line, std::string alg, std::string L, std::string opt, std::string alg_param, std::string out_file)
-    :out_file(out_file), pl_points(pl_points),poly_line(poly_line), opt(opt) {
+optimization::optimization(std::vector<Point> pl_points,std::vector<Segment> poly_line, std::string alg, std::string L, std::string opt, std::string alg_param, std::string out_file, double start_area, double ch_area)
+    :out_file(out_file), pl_points(pl_points),poly_line(poly_line), opt(opt), start_area(start_area), ch_area(ch_area) {
         try {
             this->L = std::stoi(L);
             if (!alg.compare("local_search")) {
@@ -581,8 +555,19 @@ optimization::optimization(std::vector<Point> pl_points,std::vector<Segment> pol
             else if (!alg.compare("simulated_annealing")) {
                 this->annealing = alg_param;
                 if (!alg_param.compare("local")) this->simulated_annealing_local();
-                else if (!alg_param.compare("global")) this->simulated_annealing_global();
-                // else if (!alg_param.compare("subdivision")) this->simulated_annealing_subdivision();
+                else if (!alg_param.compare("global")) {
+                    auto start = std::chrono::high_resolution_clock::now();
+                    this->pl_points = this->simulated_annealing_global(this->pl_points);
+                    auto stop = std::chrono::high_resolution_clock::now();
+                    this->poly_line = this->get_segment(this->pl_points);
+                    Polygon end_poly;
+                    for (auto it = this->pl_points.begin(); it != this->pl_points.end(); ++it) end_poly.push_back(*it);
+                    //get final area
+                    this->end_area = std::abs(end_poly.area());
+    
+                     this->write_to_file("simulated_annealing", std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count());
+                    }
+                else if (!alg_param.compare("subdivision")) this->simulated_annealing_subdivision();
                 else throw std::invalid_argument("\'Annealing\' must be \'local\', \'global\' or \'subdivision\'");
             }
             else throw std::invalid_argument("\'Algorithm\' must be \'local_search\' or \'simulated_annealing\'");

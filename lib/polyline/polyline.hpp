@@ -39,6 +39,8 @@ class polyline {
         polyline(std::vector<std::pair<float, float>>, std::string, std::string, std::string, std::string);
         std::vector<Point> get_pl_points(void) const;
         std::vector<Segment> get_poly_line(void) const;
+        double get_area(void) const;
+        double get_ch_area(void) const;
 };
 
 #endif
