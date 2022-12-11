@@ -378,12 +378,12 @@ void optimization::simulated_annealing_subdivision(void) {
         return (a.x() < b.x());
     });
 
-    std::vector<std::vector<std::pair<Point>>> sub_points;
+    std::vector<std::vector<<Point>> sub_points;
     std::vector<std::list<Segment>> marked_edges;
 
     int i = 0, k = 0;
     while (i < this->pl_points.size()) {
-        std::vector<std::pair<Point>> division;
+        std::vector<Point> division;
         std::list<Segment> marked;
 
         if (k != 0) marked.push_back(Segment(this->pl_points[i], this->pl_points[i + 1]));
@@ -419,24 +419,26 @@ void optimization::simulated_annealing_subdivision(void) {
     std::vector<Point> polygons[k];
     //create init  polygon
     for (int i = 0; i < k; i++) {
-        // to be change
-        polyline S(sub_points[i], "incremental", "1", "1a", "");
+        // sub_points[i] contains Point, we want std::pair<float, float>
+        std::vector<std::pair<float, float>> floats;
 
-        std::vector<Point> small_pl_points = S.get_pl_points();
-
-
-        // must mark the edges and change glabal to not switch marked edges
-        //step 2: optimize
+        polyline S(floats, "incremental", "1", "1a", "");
 
         polygons[i].resize(sub_points[i].size());
 
-        polygons[i] = this->simulated_annealing_global(small_pl_points);
+        int tries = 0;
+        while (tries < 1000) {
+            polygons[i] = this->simulated_annealing_global(sub_points[i]);
+            tries++;
 
-        
+            // if (ploygons[i] contains marked_edges[i]) break;
+        }
+        if (tries > 1000) throw std::exception();
     }
+
     // connect polygons
-    // test
-   for (int i = 0; i < k; i++) {
+
+    for (int i = 0; i < k; i++) {
         for (auto it = polygons[i].begin(); it < polygons[i].end(); ++it)
             std::cout << *it << " ";    
 
