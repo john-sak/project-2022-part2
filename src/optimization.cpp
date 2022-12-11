@@ -388,14 +388,9 @@ void optimization::simulated_annealing_subdivision(void) {
 
         if (k != 0) marked.push_back(Segment(this->pl_points[i], this->pl_points[i + 1]));
         for (int j = 0; j < std::ceil(0.75 * m) && i < this->pl_points.size(); j++, i++) division.push_back(this->pl_points[i]);
-        if (i == this->pl_points.size()) {
+        if (i >= this->pl_points.size() - 1) {
+            if (i == this->pl_points.size() - 1) division.push_back(this->pl_points[i]);
             sub_points.push_back(division);
-            marked_edges.push_back(marked);
-            k++;
-            break;
-        } else if (i == this->pl_points.size() - 1) {
-            division.push_back(this->pl_points[i]);
-            sub_points.push_back(divison);
             marked_edges.push_back(marked);
             k++;
             break;
@@ -412,17 +407,12 @@ void optimization::simulated_annealing_subdivision(void) {
             }
             if (j == std::ceil(0.5 * m)) throw std::exception();
         }
-        if (i == this->pl_points.size() - 1) {
-            division.push_back(this->pl_points[i]);
-            marked_edges.push_back(marked);
-            sub_points.push_back(division);
-            k++;
-            break;
+        if (i != this->pl_points.size()) {
+            i--;
+            marked.push_back(Segment(this->pl_points[i - 1], this->pl_points[i]));
         }
-        i--;
-        marked.push_back(Segment(this->pl_points[i - 1], this->pl_points[i]));
         marked_edges.push_back(marked);
-        sub_points.push_back(division);
+        sub_points.push_back(divison);
         k++;
     }
 
