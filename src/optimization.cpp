@@ -393,8 +393,8 @@ std::vector<Point> optimization::simulated_annealing_global(std::vector<Point> p
 }
 
  void optimization::simulated_annealing_subdivision(void) {
-     // m to be change
-     int m = 10;
+    // m to be change
+    int m = 10;
 
     std::sort(this->pl_points.begin(), this->pl_points.end(), [] (const Point &a, const Point &b) {
         return (a.x() < b.x());
@@ -446,7 +446,7 @@ std::vector<Point> optimization::simulated_annealing_global(std::vector<Point> p
 
         polyline S(floats, "incremental", "1", "1a", "");
 
-         polygons[i].resize(sub_points[i].size());
+        polygons[i].resize(sub_points[i].size());
 
         int tries = 0;
         while (tries < 1000) {
@@ -463,13 +463,13 @@ std::vector<Point> optimization::simulated_annealing_global(std::vector<Point> p
     for (int i = 0; i < k; i++) {
         for (auto it = polygons[i].begin(); it < polygons[i].end(); ++it)
             std::cout << *it << " ";    
-             std::cout << std::endl;
-     }
+            std::cout << std::endl;
+    }
 
-     // for each set of subpoints create simple polygon using algo from part 1
+    // for each set of subpoints create simple polygon using algo from part 1
 
-     //for each polygon use global annealing
- }
+    //for each polygon use global annealing
+}
 
 std::vector<Point> optimization::replace_edges(Segment e, std::vector<Segment> V) {
     std::vector<Point> temp_points = this->pl_points;
