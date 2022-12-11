@@ -578,3 +578,11 @@ std::vector<Segment> polyline::get_poly_line() const {
     return this->poly_line;
 }
 
+double polyline::get_area(void) const {
+    return this->pl_area;
+}
+
+double polyline::get_ch_area(void) const {
+    return this->ch_area;
+}
+
