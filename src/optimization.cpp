@@ -378,7 +378,7 @@ void optimization::simulated_annealing_subdivision(void) {
         return (a.x() < b.x());
     });
 
-    std::vector<std::vector<<Point>> sub_points;
+    std::vector<std::vector<Point>> sub_points;
     std::vector<std::list<Segment>> marked_edges;
 
     int i = 0, k = 0;
@@ -401,7 +401,7 @@ void optimization::simulated_annealing_subdivision(void) {
             i++;
             j++;
             if (i == this->pl_points.size() - 1) {
-                divison.push_back(this->pl_points[i]);
+                division.push_back(this->pl_points[i]);
                 i++;
                 break;
             }
@@ -412,7 +412,7 @@ void optimization::simulated_annealing_subdivision(void) {
             marked.push_back(Segment(this->pl_points[i - 1], this->pl_points[i]));
         }
         marked_edges.push_back(marked);
-        sub_points.push_back(divison);
+        sub_points.push_back(division);
         k++;
     }
 
