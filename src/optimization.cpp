@@ -444,6 +444,8 @@ void optimization::simulated_annealing_subdivision(void) {
         // sub_points[i] contains Point, we want std::pair<float, float>
         std::vector<std::pair<float, float>> floats;
 
+        for ( auto it = sub_points[i].begin(); it != sub_points[i].end(); ++it) floats.push_back(std::make_pair((float) it->x(),  (float) it->y()));
+
         polyline S(floats, "incremental", "1", "1a", "");
 
         polygons[i].resize(sub_points[i].size());
